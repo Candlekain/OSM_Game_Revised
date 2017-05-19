@@ -60,6 +60,10 @@ public class MainActivity extends Activity implements LocationListener{
                 1);
         setContentView(R.layout.activity_main);
 
+        // Intro-Dialog is created
+        IntroDialog introDialog = new IntroDialog();
+        introDialog.show(getFragmentManager(),"Intro Dialog");
+
         //important! set your user agent to prevent getting banned from the osm servers
         org.osmdroid.tileprovider.constants.OpenStreetMapTileProviderConstants.setUserAgentValue(BuildConfig.APPLICATION_ID);
         currentLocation = new GeoPoint(49.779836, 9.960033);
