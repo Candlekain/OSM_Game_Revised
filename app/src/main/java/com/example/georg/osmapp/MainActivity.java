@@ -12,11 +12,15 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
 import org.osmdroid.api.IMapController;
 import org.osmdroid.bonuspack.location.POI;
+import org.osmdroid.bonuspack.routing.OSRMRoadManager;
+import org.osmdroid.bonuspack.routing.Road;
+import org.osmdroid.bonuspack.routing.RoadManager;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.BoundingBox;
 import org.osmdroid.util.GeoPoint;
@@ -24,6 +28,7 @@ import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.ItemizedIconOverlay;
 import org.osmdroid.views.overlay.ItemizedOverlayWithFocus;
 import org.osmdroid.views.overlay.OverlayItem;
+import org.osmdroid.views.overlay.Polyline;
 import org.osmdroid.views.overlay.compass.CompassOverlay;
 import org.osmdroid.views.overlay.compass.InternalCompassOrientationProvider;
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
@@ -48,6 +53,8 @@ public class MainActivity extends Activity implements LocationListener{
 
     private ItemizedOverlayWithFocus<OverlayItem> itemOverlay;
     private OverlayItem currentItem;
+    private int currentPoints;
+    private int stage;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -67,6 +74,8 @@ public class MainActivity extends Activity implements LocationListener{
         //important! set your user agent to prevent getting banned from the osm servers
         org.osmdroid.tileprovider.constants.OpenStreetMapTileProviderConstants.setUserAgentValue(BuildConfig.APPLICATION_ID);
         currentLocation = new GeoPoint(49.779836, 9.960033);
+        currentPoints=9;
+        stage=0;
         setupMapView();
         setupViewPoint();
         setupLocationOverlay();
@@ -191,51 +200,56 @@ public class MainActivity extends Activity implements LocationListener{
         try {
             ArrayList<POI> poiList = poiProvider.get();
             Iterator<POI> poiIterator = poiList.iterator();
+            ArrayList<GeoPoint> roadList = new ArrayList<GeoPoint>();
+
             while(poiIterator.hasNext()){
                 POI poi = poiIterator.next();
+                roadList.add(poi.mLocation);
                 OverlayItem item = new OverlayItem(poi.mType, poi.mDescription, poi.mLocation);
                 item.setMarker(getIcon(poi.mType));
                 items.add(item);
             }
+            addItems(items);
+            RoadProvider roadProvider = new RoadProvider(this);
+            roadProvider.execute(roadList);
+            Polyline roadOverlay = roadProvider.get();
+            map.getOverlays().add(roadOverlay);
+            map.invalidate();
+
         } catch (InterruptedException e) {
             e.printStackTrace();
         } catch (ExecutionException e) {
             e.printStackTrace();
         }
 
-        if(itemOverlay != null){
-            itemOverlay.addItems(items);
-        } else {
-            itemOverlay =  new ItemizedOverlayWithFocus<OverlayItem>(this, items,
-                    new ItemizedIconOverlay.OnItemGestureListener<OverlayItem>() {
-                        @Override
-                        public boolean onItemSingleTapUp(final int index, final OverlayItem item) {
+    }
 
-                            //if(item.equals(currentItem)){
-                            if(item.getDrawable().getConstantState().equals(ContextCompat.getDrawable(getApplicationContext(), R.drawable.marker_deactivated).getConstantState())){
-                                return true;
-                            } else {
-                                currentItem = item;
-                                Bundle bundle = new Bundle();
-                                bundle.putString("itemName",item.getTitle());
-                                ItemDialog dialog = new ItemDialog();
-                                dialog.setArguments(bundle);
-                                dialog.show(getFragmentManager(),"Display Dialog");
-                                return true;
-                            }
+    public void addItems(ArrayList<OverlayItem> itemList){
+        itemOverlay =  new ItemizedOverlayWithFocus<OverlayItem>(this, itemList,
+                new ItemizedIconOverlay.OnItemGestureListener<OverlayItem>() {
+                    @Override
+                    public boolean onItemSingleTapUp(final int index, final OverlayItem item) {
 
+                        //if(item.equals(currentItem)){
+                        if(item.getDrawable().getConstantState().equals(ContextCompat.getDrawable(getApplicationContext(), R.drawable.marker_deactivated).getConstantState())){
+                            return true;
+                        } else {
+                            currentItem = item;
+                            Bundle bundle = new Bundle();
+                            bundle.putString("itemName",item.getTitle());
+                            ItemDialog dialog = new ItemDialog();
+                            dialog.setArguments(bundle);
+                            dialog.show(getFragmentManager(),"Display Dialog");
+                            return true;
                         }
-                        @Override
-                        public boolean onItemLongPress(final int index, final OverlayItem item) {
-                            return false;
-                        }
-                    });
-            itemOverlay.setFocusItemsOnTap(false);
-
-            map.getOverlays().add(itemOverlay);
-        }
-
-
+                    }
+                    @Override
+                    public boolean onItemLongPress(final int index, final OverlayItem item) {
+                        return false;
+                    }
+                });
+        itemOverlay.setFocusItemsOnTap(false);
+        map.getOverlays().add(itemOverlay);
     }
 
     public Drawable getIcon(String type){
@@ -251,14 +265,13 @@ public class MainActivity extends Activity implements LocationListener{
         if(requestCode == 1){
             int newPoints = data.getExtras().getInt("points");
             TextView pointsTotal = (TextView) findViewById(R.id.current_points);
-            int oldPoints = Integer.parseInt(pointsTotal.getText().toString());
-            int currentPoints = oldPoints+newPoints;
+            currentPoints = currentPoints+newPoints;
             pointsTotal.setText(String.valueOf(currentPoints));
 
             // deactivate game for current item
             currentItem.setMarker(ContextCompat.getDrawable(this, R.drawable.marker_deactivated));
 
-            // rating stars as feedback
+            // rating stars as feedback for single POI
             RatingBar stars = new RatingBar(this);
             stars.setNumStars(3);
             stars.setMax(3);
@@ -269,7 +282,34 @@ public class MainActivity extends Activity implements LocationListener{
             stars.setScaleY(0.5f);
             map.addView(stars,stars.getLayoutParams());
 
+            // update stage/badge according to current Points
+            showAchievementDialog();
+        }
+    }
 
+    public void showAchievementDialog(){
+        ImageView badge = (ImageView)findViewById(R.id.badge);
+        AchievementDialog dialog = new AchievementDialog();
+        Bundle bundle = new Bundle();
+
+        if(currentPoints >=5 && currentPoints <10){
+            badge.setImageResource(R.drawable.bronze_small);
+            this.stage=1;
+            bundle.putInt("ID",R.drawable.bronze);
+            dialog.setArguments(bundle);
+            dialog.show(getFragmentManager(),"Display Dialog");
+        } else if(currentPoints >= 10 && currentPoints <15){
+            badge.setImageResource(R.drawable.silver_small);
+            this.stage=2;
+            bundle.putInt("ID",R.drawable.silver);
+            dialog.setArguments(bundle);
+            dialog.show(getFragmentManager(),"Display Dialog");
+        } else if(currentPoints >= 15){
+            badge.setImageResource(R.drawable.gold_small);
+            this.stage=3;
+            bundle.putInt("ID",R.drawable.gold);
+            dialog.setArguments(bundle);
+            dialog.show(getFragmentManager(),"Display Dialog");
         }
     }
 

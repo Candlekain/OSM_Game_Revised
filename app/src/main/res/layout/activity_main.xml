@@ -10,14 +10,27 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent" />
 
-    <TextView
-        android:text="0"
-        android:gravity="center"
-        android:id="@+id/current_points"
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/star1"
         android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"/>
+        android:layout_alignParentTop="true">
+
+        <TextView
+            android:text="0"
+            android:gravity="center"
+            android:id="@+id/current_points"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/star1" />
+
+        <ImageView
+            android:id="@+id/badge"
+            android:layout_gravity="center_vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+    </LinearLayout>
 
 </RelativeLayout>
