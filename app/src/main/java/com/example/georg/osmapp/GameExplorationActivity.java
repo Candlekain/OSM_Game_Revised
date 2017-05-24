@@ -8,6 +8,7 @@ import android.widget.ImageView;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * Created by Georg on 24.05.2017.
@@ -17,6 +18,7 @@ public class GameExplorationActivity extends Activity {
 
     private String itemName;
     private ImageView[] imageArray;
+    private Drawable correctImage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
@@ -40,14 +42,19 @@ public class GameExplorationActivity extends Activity {
     public void assignImages(){
         try {
             String[] assets = getAssets().list("images");
-            
+
             //File directory = new File(getAssets().open("images").toString());
             //File[] files = directory.listFiles();
             ArrayList<Drawable> drawables = new ArrayList<Drawable>();
             for(String asset:assets){
-                System.out.println(asset);
-                drawables.add(Drawable.createFromStream(getAssets().open("images/"+asset),asset));
+                if(asset.startsWith(itemName)){
+                    correctImage = Drawable.createFromStream(getAssets().open("images/"+asset),asset);
+                } else {
+                    drawables.add(Drawable.createFromStream(getAssets().open("images/"+asset),asset));
+                    System.out.println(asset);
+                }
             }
+
         } catch (IOException e) {
             e.printStackTrace();
         }
