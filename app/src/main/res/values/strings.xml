@@ -13,4 +13,12 @@
         Und jetzt, viel Spaß beim Spielen!
 
     </string>
+    <string name="achievement_text_heading">Herzlichen Glückwunsch!</string>
+    <string name="achievement_text_content">Gute Arbeit! Du hast genügend Punkte gesammelt und die nächste Stufe erreicht. Erforsche deine Umgebung noch weiter um das Lexikon mit neuen Inhalten zu befüllen.</string>
+    <string name="game_1_heading">Lückentext</string>
+    <string name="game_1_content">In diesem Spiel musst du die Lücken im Text mit den richtigen Begriffen füllen.</string>
+    <string name="game_2_heading">Erkundung</string>
+    <string name="game_2_content">Erforsche deine Umgebung und wähle das richtige Bild aus.</string>
+    <string name="game_dialog_start">Spiel Starten!</string>
+    <string name="exploration_game_header">Welches Bild gehört zu diesem Objekt?</string>
 </resources>

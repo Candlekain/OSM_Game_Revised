@@ -1,23 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/textView"
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Herzlichen Glückwunsch!"
-        android:textAlignment="center"
-        android:textColor="@android:color/black"
-        android:textSize="24sp" />
+        android:layout_height="wrap_content">
 
-    <ImageView
-        android:id="@+id/badge_dialog"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
-        />
+        <TextView
+            android:id="@+id/textView_achievement_heading"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="@string/achievement_text_heading"
+            android:textAlignment="center"
+            android:textColor="@android:color/black"
+            android:textSize="24sp"
+            android:layout_weight="1"/>
 
-</LinearLayout>
+        <ImageView
+            android:id="@+id/badge_dialog"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1" />
+        <TextView
+            android:id="@+id/textView_achievement_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="@string/achievement_text_content"
+            android:textAlignment="center"
+            android:textColor="@android:color/black"
+            android:textSize="18sp"
+            android:layout_weight="1"/>
+
+    </LinearLayout>
+
+</ScrollView>

@@ -5,34 +5,15 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.text.Html;
-import android.text.Layout;
-import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.osmdroid.views.MapView;
-import org.osmdroid.views.overlay.OverlayItem;
-
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.StringReader;
-import java.util.HashMap;
 import java.util.Scanner;
-import java.util.concurrent.ExecutionException;
 
 
 /**
@@ -41,46 +22,27 @@ import java.util.concurrent.ExecutionException;
 
 public class ItemDialog extends DialogFragment {
 
+    private View dialogLayout;
     private String itemName;
-    private String content;
-    private ProgressBar timerBar;
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         itemName = getArguments().getString("itemName");
-        content = "";
-        timerBar = new ProgressBar(getActivity(),null, android.R.attr.progressBarStyleHorizontal);
-        // Deprecated: request Wiki article and define content
-        /*
-        WikiProvider provider = new WikiProvider();
-        provider.execute(itemName);
 
-        try {
-            content = provider.get();
-
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }*/
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setTitle(itemName);
+        dialogLayout = View.inflate(getActivity(), R.layout.dialog_item, null);
+        builder.setView(dialogLayout);
 
         // Prepare content for game
         parseContent();
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle(itemName);
+        builder.setPositiveButton("Spiel auswählen", new DialogInterface.OnClickListener() {
 
-        builder.setView(getItemLayout());
-        //ImageView image = new ImageView(getActivity());
-        //image.setImageResource(getResources().getIdentifier("drawable/"+itemName.toLowerCase(),null,getActivity().getPackageName()));
-        //builder.setView(image);
-
-        //builder.setMessage(content);
-
-        builder.setPositiveButton("Spiel starten", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
+            public void onClick(DialogInterface dialog, int id) {
                         // Start the game in a new activity
-                        startGame();
+                        //startGame();
+                        startGameMenu();
 
                     }
                 });
@@ -99,7 +61,8 @@ public class ItemDialog extends DialogFragment {
     }
 
     public void parseContent(){
-        Scanner scanner = null;
+        String content = "";
+        Scanner scanner;
         try {
             scanner = new Scanner(getActivity().getAssets().open(itemName+".txt"),"UTF-8");
             while(scanner.hasNext()){
@@ -112,12 +75,14 @@ public class ItemDialog extends DialogFragment {
                 }
             }
             //System.out.println(result);
+            TextView contentView = (TextView)dialogLayout.findViewById(R.id.itemDialog_content);
+            contentView.setText(content);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
     }
-
+    /*
     public LinearLayout getItemLayout(){
         // Construction of general layout
         LinearLayout vertLayout = new LinearLayout(getActivity());
@@ -159,10 +124,10 @@ public class ItemDialog extends DialogFragment {
         vertLayout.addView(horLayout);
         vertLayout.addView(timerBar);
         return vertLayout;
-    }
+    }*/
 
     public void startGame(){
-        Intent intent = new Intent(getActivity().getApplicationContext(), GameActivity.class);
+        Intent intent = new Intent(getActivity().getApplicationContext(), GameBlanksActivity.class);
         intent.putExtra("Name",itemName);
         getActivity().startActivityForResult(intent,1);
         //startActivity(intent);
@@ -170,6 +135,7 @@ public class ItemDialog extends DialogFragment {
 
     public void setupTimer(){
         new CountDownTimer(90000, 1000) {
+            ProgressBar timerBar = (ProgressBar)dialogLayout.findViewById(R.id.itemDialog_timerBar) ;
 
             public void onTick(long millisUntilFinished) {
                 timerBar.setProgress(timerBar.getProgress()+1);
@@ -181,6 +147,18 @@ public class ItemDialog extends DialogFragment {
                 }
             }
         }.start();
+
+    }
+
+    public void startGameMenu(){
+        if(getDialog() != null){
+            getDialog().cancel();
+        }
+        MenuDialog menuDialog = new MenuDialog();
+        Bundle bundle = new Bundle();
+        bundle.putString("itemName",itemName);
+        menuDialog.setArguments(bundle);
+        menuDialog.show(getFragmentManager(),"Menu Dialog");
 
     }
 

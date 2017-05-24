@@ -74,7 +74,7 @@ public class MainActivity extends Activity implements LocationListener{
         //important! set your user agent to prevent getting banned from the osm servers
         org.osmdroid.tileprovider.constants.OpenStreetMapTileProviderConstants.setUserAgentValue(BuildConfig.APPLICATION_ID);
         currentLocation = new GeoPoint(49.779836, 9.960033);
-        currentPoints=9;
+        currentPoints=4;
         stage=0;
         setupMapView();
         setupViewPoint();
@@ -235,9 +235,9 @@ public class MainActivity extends Activity implements LocationListener{
                             return true;
                         } else {
                             currentItem = item;
+                            ItemDialog dialog = new ItemDialog();
                             Bundle bundle = new Bundle();
                             bundle.putString("itemName",item.getTitle());
-                            ItemDialog dialog = new ItemDialog();
                             dialog.setArguments(bundle);
                             dialog.show(getFragmentManager(),"Display Dialog");
                             return true;
@@ -273,8 +273,8 @@ public class MainActivity extends Activity implements LocationListener{
 
             // rating stars as feedback for single POI
             RatingBar stars = new RatingBar(this);
-            stars.setNumStars(3);
-            stars.setMax(3);
+            stars.setNumStars(6);
+            stars.setMax(6);
             stars.setIsIndicator(true);
             stars.setRating(newPoints);
             stars.setLayoutParams(new MapView.LayoutParams(MapView.LayoutParams.WRAP_CONTENT,MapView.LayoutParams.WRAP_CONTENT,currentItem.getPoint(),MapView.LayoutParams.CENTER,0,0));
