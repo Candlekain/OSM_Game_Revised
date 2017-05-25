@@ -66,7 +66,7 @@ public class ResultDialog extends DialogFragment {
         //upperLayout.setBaselineAligned(false);
 
         ImageView image = new ImageView(getActivity());
-        image.setImageResource(getResources().getIdentifier("drawable/"+itemName.toLowerCase().replace(" ","").replace("-",""),null,getActivity().getPackageName()));
+        image.setImageResource(getResources().getIdentifier(itemName.toLowerCase().replace(" ","").replace("-",""),"drawable",getActivity().getPackageName()));
         image.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT,Gravity.CENTER_HORIZONTAL));
         //image.setScaleType(ImageView.ScaleType.FIT_CENTER);
         image.setAdjustViewBounds(true);

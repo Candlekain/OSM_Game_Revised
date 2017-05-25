@@ -24,18 +24,20 @@ public class ItemDialog extends DialogFragment {
 
     private View dialogLayout;
     private String itemName;
+    private String content;
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         itemName = getArguments().getString("itemName");
+        content = getArguments().getString("itemContent");
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle(itemName);
         dialogLayout = View.inflate(getActivity(), R.layout.dialog_item, null);
         builder.setView(dialogLayout);
 
-        // Prepare content for game
-        parseContent();
+        TextView contentView = (TextView)dialogLayout.findViewById(R.id.itemDialog_content);
+        contentView.setText(content);
 
         builder.setPositiveButton("Spiel auswählen", new DialogInterface.OnClickListener() {
 
@@ -59,7 +61,7 @@ public class ItemDialog extends DialogFragment {
         // Create the AlertDialog object and return it
         return builder.create();
     }
-
+    /*
     public void parseContent(){
         String content = "";
         Scanner scanner;
@@ -82,7 +84,7 @@ public class ItemDialog extends DialogFragment {
         }
 
     }
-    /*
+
     public LinearLayout getItemLayout(){
         // Construction of general layout
         LinearLayout vertLayout = new LinearLayout(getActivity());
@@ -157,6 +159,8 @@ public class ItemDialog extends DialogFragment {
         MenuDialog menuDialog = new MenuDialog();
         Bundle bundle = new Bundle();
         bundle.putString("itemName",itemName);
+        bundle.putBoolean("game_1_activated",getArguments().getBoolean("game_1_activated"));
+        bundle.putBoolean("game_2_activated",getArguments().getBoolean("game_2_activated"));
         menuDialog.setArguments(bundle);
         menuDialog.show(getFragmentManager(),"Menu Dialog");
 

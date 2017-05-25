@@ -35,11 +35,13 @@ import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.IMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Scanner;
 import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends Activity implements LocationListener{
@@ -51,8 +53,10 @@ public class MainActivity extends Activity implements LocationListener{
     private LocationManager locationManager;
     private MyLocationNewOverlay locationOverlay;
 
-    private ItemizedOverlayWithFocus<OverlayItem> itemOverlay;
-    private OverlayItem currentItem;
+    private ItemizedOverlayWithFocus<MyOverlayItem> itemOverlay;
+    private MyOverlayItem currentItem;
+    private String currentText;
+    private int currentImage;
     private int currentPoints;
     private int stage;
 
@@ -74,7 +78,7 @@ public class MainActivity extends Activity implements LocationListener{
         //important! set your user agent to prevent getting banned from the osm servers
         org.osmdroid.tileprovider.constants.OpenStreetMapTileProviderConstants.setUserAgentValue(BuildConfig.APPLICATION_ID);
         currentLocation = new GeoPoint(49.779836, 9.960033);
-        currentPoints=4;
+        currentPoints=0;
         stage=0;
         setupMapView();
         setupViewPoint();
@@ -196,7 +200,7 @@ public class MainActivity extends Activity implements LocationListener{
 
         POIProvider poiProvider = new POIProvider();
         poiProvider.execute(box);
-        ArrayList<OverlayItem> items = new ArrayList<OverlayItem>();
+        ArrayList<MyOverlayItem> items = new ArrayList<MyOverlayItem>();
         try {
             ArrayList<POI> poiList = poiProvider.get();
             Iterator<POI> poiIterator = poiList.iterator();
@@ -205,7 +209,7 @@ public class MainActivity extends Activity implements LocationListener{
             while(poiIterator.hasNext()){
                 POI poi = poiIterator.next();
                 roadList.add(poi.mLocation);
-                OverlayItem item = new OverlayItem(poi.mType, poi.mDescription, poi.mLocation);
+                MyOverlayItem item = new MyOverlayItem(poi.mType, poi.mDescription, poi.mLocation);
                 item.setMarker(getIcon(poi.mType));
                 items.add(item);
             }
@@ -224,32 +228,58 @@ public class MainActivity extends Activity implements LocationListener{
 
     }
 
-    public void addItems(ArrayList<OverlayItem> itemList){
-        itemOverlay =  new ItemizedOverlayWithFocus<OverlayItem>(this, itemList,
-                new ItemizedIconOverlay.OnItemGestureListener<OverlayItem>() {
+    public void addItems(ArrayList<MyOverlayItem> itemList){
+        itemOverlay =  new ItemizedOverlayWithFocus<MyOverlayItem>(this, itemList,
+                new ItemizedIconOverlay.OnItemGestureListener<MyOverlayItem>() {
                     @Override
-                    public boolean onItemSingleTapUp(final int index, final OverlayItem item) {
+                    public boolean onItemSingleTapUp(final int index, final MyOverlayItem item) {
 
                         //if(item.equals(currentItem)){
                         if(item.getDrawable().getConstantState().equals(ContextCompat.getDrawable(getApplicationContext(), R.drawable.marker_deactivated).getConstantState())){
                             return true;
                         } else {
                             currentItem = item;
+                            currentText = getTextForItem(currentItem.getTitle());
+                            currentImage = getResources().getIdentifier(currentItem.getTitle().toLowerCase().replace(" ","").replace("-",""),"drawable",getPackageName());
                             ItemDialog dialog = new ItemDialog();
                             Bundle bundle = new Bundle();
                             bundle.putString("itemName",item.getTitle());
+                            bundle.putString("itemContent",currentText);
+                            bundle.putBoolean("game_1_activated",item.isGame_1_activated());
+                            bundle.putBoolean("game_2_activated",item.isGame_2_activated());
                             dialog.setArguments(bundle);
                             dialog.show(getFragmentManager(),"Display Dialog");
                             return true;
                         }
                     }
                     @Override
-                    public boolean onItemLongPress(final int index, final OverlayItem item) {
+                    public boolean onItemLongPress(final int index, final MyOverlayItem item) {
                         return false;
                     }
                 });
         itemOverlay.setFocusItemsOnTap(false);
         map.getOverlays().add(itemOverlay);
+    }
+
+    public String getTextForItem(String itemName){
+        String content = "";
+        Scanner scanner;
+        try {
+            scanner = new Scanner(getAssets().open(itemName+".txt"),"UTF-8");
+            while(scanner.hasNext()){
+                String s = scanner.next();
+                if(s.contains("[")){
+                    String word = s.substring(0,s.indexOf("|"));
+                    content = content+word+" ";
+                } else {
+                    content = content+s+" ";
+                }
+            }
+            //System.out.println(result);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return content;
     }
 
     public Drawable getIcon(String type){
@@ -262,28 +292,37 @@ public class MainActivity extends Activity implements LocationListener{
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if(requestCode == 1){
-            int newPoints = data.getExtras().getInt("points");
-            TextView pointsTotal = (TextView) findViewById(R.id.current_points);
-            currentPoints = currentPoints+newPoints;
-            pointsTotal.setText(String.valueOf(currentPoints));
+        // rating stars as feedback for single POI
+        RatingBar stars = new RatingBar(this);
+        stars.setNumStars(6);
+        stars.setMax(6);
+        stars.setIsIndicator(true);
+        stars.setLayoutParams(new MapView.LayoutParams(MapView.LayoutParams.WRAP_CONTENT,MapView.LayoutParams.WRAP_CONTENT,currentItem.getPoint(),MapView.LayoutParams.CENTER,0,0));
+        stars.setScaleX(0.5f);
+        stars.setScaleY(0.5f);
 
+        int newPoints = data.getExtras().getInt("points");
+        TextView pointsTotal = (TextView) findViewById(R.id.current_points);
+        currentPoints = currentPoints+newPoints;
+        pointsTotal.setText(String.valueOf(currentPoints));
+
+        currentItem.setPoints(currentItem.getPoints()+newPoints);
+        stars.setRating(currentItem.getPoints());
+
+        map.addView(stars,stars.getLayoutParams());
+
+        // update stage/badge according to current Points
+        showAchievementDialog();
+
+        if(resultCode==1){
+            currentItem.setGame_1_activated(false);
+        } else if(resultCode==2){
+            currentItem.setGame_2_activated(false);
+        }
+        if(!currentItem.isGame_1_activated() && !currentItem.isGame_2_activated()){
             // deactivate game for current item
             currentItem.setMarker(ContextCompat.getDrawable(this, R.drawable.marker_deactivated));
 
-            // rating stars as feedback for single POI
-            RatingBar stars = new RatingBar(this);
-            stars.setNumStars(6);
-            stars.setMax(6);
-            stars.setIsIndicator(true);
-            stars.setRating(newPoints);
-            stars.setLayoutParams(new MapView.LayoutParams(MapView.LayoutParams.WRAP_CONTENT,MapView.LayoutParams.WRAP_CONTENT,currentItem.getPoint(),MapView.LayoutParams.CENTER,0,0));
-            stars.setScaleX(0.5f);
-            stars.setScaleY(0.5f);
-            map.addView(stars,stars.getLayoutParams());
-
-            // update stage/badge according to current Points
-            showAchievementDialog();
         }
     }
 
@@ -292,19 +331,19 @@ public class MainActivity extends Activity implements LocationListener{
         AchievementDialog dialog = new AchievementDialog();
         Bundle bundle = new Bundle();
 
-        if(currentPoints >=5 && currentPoints <10){
+        if(currentPoints >=5 && currentPoints <10 && stage==0){
             badge.setImageResource(R.drawable.bronze_small);
             this.stage=1;
             bundle.putInt("ID",R.drawable.bronze);
             dialog.setArguments(bundle);
             dialog.show(getFragmentManager(),"Display Dialog");
-        } else if(currentPoints >= 10 && currentPoints <15){
+        } else if(currentPoints >= 10 && currentPoints <15 && stage==1){
             badge.setImageResource(R.drawable.silver_small);
             this.stage=2;
             bundle.putInt("ID",R.drawable.silver);
             dialog.setArguments(bundle);
             dialog.show(getFragmentManager(),"Display Dialog");
-        } else if(currentPoints >= 15){
+        } else if(currentPoints >= 15 && stage==2){
             badge.setImageResource(R.drawable.gold_small);
             this.stage=3;
             bundle.putInt("ID",R.drawable.gold);
@@ -315,24 +354,24 @@ public class MainActivity extends Activity implements LocationListener{
 
     public void setupEvaluation(){
         // Add Items for Evaluation study
-        OverlayItem sonnenzeichen = new OverlayItem("Sonnenzeichen", "memorial", new GeoPoint(49.78237,9.96784));
+        MyOverlayItem sonnenzeichen = new MyOverlayItem("Sonnenzeichen", "memorial", new GeoPoint(49.78237,9.96784));
         sonnenzeichen.setMarker(getIcon("memorial"));
-        OverlayItem roterPlatz = new OverlayItem("Roter Platz", "memorial", new GeoPoint(49.78215,9.96807));
+        MyOverlayItem roterPlatz = new MyOverlayItem("Roter Platz", "memorial", new GeoPoint(49.78215,9.96807));
         roterPlatz.setMarker(getIcon("memorial"));
-        OverlayItem minimalflaeche = new OverlayItem("Ennepersche Minimalflaeche", "memorial", new GeoPoint(49.78454,9.97312));
+        MyOverlayItem minimalflaeche = new MyOverlayItem("Ennepersche Minimalflaeche", "memorial", new GeoPoint(49.78454,9.97312));
         minimalflaeche.setMarker(getIcon("memorial"));
-        OverlayItem museum = new OverlayItem("Mineralogisches Museum", "museum", new GeoPoint(49.78235,9.97019));
+        MyOverlayItem museum = new MyOverlayItem("Mineralogisches Museum", "museum", new GeoPoint(49.78235,9.97019));
         museum.setMarker(getIcon("museum"));
-        OverlayItem kopf = new OverlayItem("Denker-Kopf", "sculpture", new GeoPoint(49.78331,9.97058));
+        MyOverlayItem kopf = new MyOverlayItem("Denker-Kopf", "sculpture", new GeoPoint(49.78331,9.97058));
         kopf.setMarker(getIcon("sculpture"));
 
         // Add order numbers for study
         List<Integer> orderList = Arrays.asList(1,2,3,4,5);
         Collections.shuffle(orderList);
-        List<OverlayItem> studyItems = Arrays.asList(sonnenzeichen,roterPlatz,minimalflaeche,museum,kopf);
+        List<MyOverlayItem> studyItems = Arrays.asList(sonnenzeichen,roterPlatz,minimalflaeche,museum,kopf);
 
         for(int i=0;i<5;i++){
-            OverlayItem item = studyItems.get(i);
+            MyOverlayItem item = studyItems.get(i);
             int order = orderList.get(i);
 
             TextView numberView = new TextView(this);
