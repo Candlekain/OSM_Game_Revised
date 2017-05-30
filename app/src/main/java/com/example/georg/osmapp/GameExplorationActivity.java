@@ -55,7 +55,7 @@ public class GameExplorationActivity extends Activity {
             //File[] files = directory.listFiles();
             ArrayList<Drawable> allDrawables = new ArrayList<Drawable>();
             for(String asset:assets){
-                if(asset.contains(itemName.toLowerCase())){
+                if(asset.contains(itemName.toLowerCase().replace(" ","").replace("-",""))){
                     correctImage = Drawable.createFromStream(getAssets().open("pictures/"+asset),asset);
                 } else {
                     allDrawables.add(Drawable.createFromStream(getAssets().open("pictures/"+asset),asset));

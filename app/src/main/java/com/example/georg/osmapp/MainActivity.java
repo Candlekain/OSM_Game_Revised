@@ -2,9 +2,11 @@ package com.example.georg.osmapp;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationListener;
@@ -12,8 +14,13 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RatingBar;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import org.osmdroid.api.IMapController;
@@ -39,6 +46,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
@@ -59,6 +67,7 @@ public class MainActivity extends Activity implements LocationListener{
     private int currentImage;
     private int currentPoints;
     private int stage;
+    private ArrayList<Entry> entries;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -80,10 +89,12 @@ public class MainActivity extends Activity implements LocationListener{
         currentLocation = new GeoPoint(49.779836, 9.960033);
         currentPoints=0;
         stage=0;
+        entries=new ArrayList<Entry>();
         setupMapView();
         setupViewPoint();
         setupLocationOverlay();
         setupCompassOverlay();
+        setupEnzyclopedia();
         displayPOIs();
 
         // only for evaluation study purposes:
@@ -167,6 +178,50 @@ public class MainActivity extends Activity implements LocationListener{
         map.getOverlays().add(compassOverlay);
     }
 
+    public void setupEnzyclopedia(){
+        ImageView enzyImage = (ImageView)findViewById(R.id.enzyclopedia_small);
+        enzyImage.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder dialogEnzyBuilder = new AlertDialog.Builder(MainActivity.this);
+                LinearLayout dialogLayout = (LinearLayout) View.inflate(MainActivity.this, R.layout.dialog_enzyclopedia, null);
+                dialogEnzyBuilder.setView(dialogLayout);
+                for(Entry entry:entries){
+                    LinearLayout horLayout = new LinearLayout(MainActivity.this);
+                    horLayout.setOrientation(LinearLayout.HORIZONTAL);
+                    horLayout.setPadding(0,0,0,50);
+                    //horLayout.setLayoutParams(new LinearLayout.LayoutParams(dialogLayout.getWidth(), LinearLayout.LayoutParams.WRAP_CONTENT));
+
+                    ImageView image = new ImageView(MainActivity.this);
+                    image.setImageResource(entry.getImage());
+                    image.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.MATCH_PARENT,1f));
+                    image.setAdjustViewBounds(true);
+                    image.setScaleType(ImageView.ScaleType.FIT_CENTER);
+
+                    TextView text = new TextView(MainActivity.this);
+                    text.setText(entry.getText());
+                    text.setTextColor(Color.BLACK);
+                    text.setTextSize(18);
+                    text.setPadding(20,0,0,0);
+                    text.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.MATCH_PARENT,1f));
+
+                    image.setMaxHeight(text.getHeight());
+
+                    horLayout.addView(image);
+                    horLayout.addView(text);
+
+                    LinearLayout vertLayout = (LinearLayout)dialogLayout.findViewById(R.id.enzyclopedia);
+                    vertLayout.addView(horLayout);
+                }
+                AlertDialog dialogEnzy = dialogEnzyBuilder.create();
+                dialogEnzy.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+
+                dialogEnzy.show();
+            }
+        });
+    }
+
     public void enableLocationUpdates(){
         locationOverlay.enableMyLocation();
         locationOverlay.enableFollowLocation();
@@ -245,8 +300,8 @@ public class MainActivity extends Activity implements LocationListener{
                             Bundle bundle = new Bundle();
                             bundle.putString("itemName",item.getTitle());
                             bundle.putString("itemContent",currentText);
-                            bundle.putBoolean("game_1_activated",item.isGame_1_activated());
-                            bundle.putBoolean("game_2_activated",item.isGame_2_activated());
+                            bundle.putBoolean("game_1_activated",currentItem.isGame_1_activated());
+                            bundle.putBoolean("game_2_activated",currentItem.isGame_2_activated());
                             dialog.setArguments(bundle);
                             dialog.show(getFragmentManager(),"Display Dialog");
                             return true;
@@ -322,7 +377,7 @@ public class MainActivity extends Activity implements LocationListener{
         if(!currentItem.isGame_1_activated() && !currentItem.isGame_2_activated()){
             // deactivate game for current item
             currentItem.setMarker(ContextCompat.getDrawable(this, R.drawable.marker_deactivated));
-
+            entries.add(new Entry(currentImage,currentText));
         }
     }
 

@@ -33,4 +33,12 @@
 
     </LinearLayout>
 
+    <ImageView
+        android:id="@+id/enzyclopedia_small"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/encyclopedia_small"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentBottom="true"/>
+
 </RelativeLayout>

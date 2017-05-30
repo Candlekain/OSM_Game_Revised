@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/encyclopedia"
+    android:paddingTop="60dp"
+    android:paddingBottom="170dp"
+    android:paddingLeft="200dp"
+    android:paddingRight="200dp"
+    >
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:clipToPadding="false"
+        android:fillViewport="false"
+        android:fadeScrollbars="false">
+
+        <LinearLayout
+            android:id="@+id/enzyclopedia"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"/>
+
+    </ScrollView>
+</LinearLayout>
