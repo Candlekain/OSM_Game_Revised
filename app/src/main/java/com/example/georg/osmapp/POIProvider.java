@@ -22,6 +22,8 @@ public class POIProvider extends AsyncTask <BoundingBox, Void, ArrayList<POI>> {
         OverpassAPIProvider  poiProvider = new OverpassAPIProvider();
 
         ArrayList<POI> churchList = poiProvider.getPOIsFromUrl( poiProvider.urlForPOISearch("amenity=place_of_worship",params[0],200,30));
+        ArrayList<POI> memList = poiProvider.getPOIsFromUrl( poiProvider.urlForPOISearch("historic=memorial",params[0],200,30));
+
         // fake list for evaluation study:
         // ArrayList<POI> churchList = new ArrayList<POI>();
 
@@ -29,7 +31,9 @@ public class POIProvider extends AsyncTask <BoundingBox, Void, ArrayList<POI>> {
         if(churchList != null){
             poiList.addAll(churchList);
         }
-        System.out.println(poiList);
+        if(memList != null){
+            poiList.addAll(memList);
+        }
         return poiList;
     }
 

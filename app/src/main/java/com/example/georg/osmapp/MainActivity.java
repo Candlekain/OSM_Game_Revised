@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.AssetManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
@@ -259,21 +260,23 @@ public class MainActivity extends Activity implements LocationListener{
         try {
             ArrayList<POI> poiList = poiProvider.get();
             Iterator<POI> poiIterator = poiList.iterator();
-            ArrayList<GeoPoint> roadList = new ArrayList<GeoPoint>();
+            //ArrayList<GeoPoint> roadList = new ArrayList<GeoPoint>();
 
             while(poiIterator.hasNext()){
                 POI poi = poiIterator.next();
-                roadList.add(poi.mLocation);
+                //roadList.add(poi.mLocation);
                 MyOverlayItem item = new MyOverlayItem(poi.mType, poi.mDescription, poi.mLocation);
-                item.setMarker(getIcon(poi.mType));
+                item.setMarker(getIcon(poi.mDescription));
                 items.add(item);
             }
             addItems(items);
+            /*
             RoadProvider roadProvider = new RoadProvider(this);
             roadProvider.execute(roadList);
             Polyline roadOverlay = roadProvider.get();
             map.getOverlays().add(roadOverlay);
             map.invalidate();
+            */
 
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -288,13 +291,13 @@ public class MainActivity extends Activity implements LocationListener{
                 new ItemizedIconOverlay.OnItemGestureListener<MyOverlayItem>() {
                     @Override
                     public boolean onItemSingleTapUp(final int index, final MyOverlayItem item) {
-
+                        String tempText = getTextForItem(item.getTitle());
                         //if(item.equals(currentItem)){
                         if(item.getDrawable().getConstantState().equals(ContextCompat.getDrawable(getApplicationContext(), R.drawable.marker_deactivated).getConstantState())){
                             return true;
-                        } else {
+                        } else if (!tempText.isEmpty()){
                             currentItem = item;
-                            currentText = getTextForItem(currentItem.getTitle());
+                            currentText = tempText;
                             currentImage = getResources().getIdentifier(currentItem.getTitle().toLowerCase().replace(" ","").replace("-",""),"drawable",getPackageName());
                             ItemDialog dialog = new ItemDialog();
                             Bundle bundle = new Bundle();
@@ -304,6 +307,14 @@ public class MainActivity extends Activity implements LocationListener{
                             bundle.putBoolean("game_2_activated",currentItem.isGame_2_activated());
                             dialog.setArguments(bundle);
                             dialog.show(getFragmentManager(),"Display Dialog");
+                            return true;
+                        }
+
+                        else {
+                            AlertDialog.Builder alertBuilder = new AlertDialog.Builder(MainActivity.this);
+                            alertBuilder.setMessage("Zu diesem Objekt fehlen leider momentan die nötigen Daten. Schau einfach später nochmal vorbei.");
+                            AlertDialog dialog = alertBuilder.create();
+                            dialog.show();
                             return true;
                         }
                     }
@@ -338,6 +349,15 @@ public class MainActivity extends Activity implements LocationListener{
     }
 
     public Drawable getIcon(String type){
+        if(type != null){
+            if(type.startsWith("place_of_worship")){
+                return ContextCompat.getDrawable(this, R.drawable.marker_church);
+            } else if (type.startsWith("memorial")){
+                return ContextCompat.getDrawable(this, R.drawable.marker_memorial);
+            } else {
+                return ContextCompat.getDrawable(this, R.drawable.marker_default);
+            }
+        }
         return ContextCompat.getDrawable(this, R.drawable.marker_default);
         //getDrawable(R.drawable.marker_default);
         //getResources().getDrawable(R.drawable.marker_default);

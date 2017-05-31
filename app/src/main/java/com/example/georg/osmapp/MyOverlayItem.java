@@ -1,7 +1,12 @@
 package com.example.georg.osmapp;
 
+import android.app.Activity;
+
 import org.osmdroid.api.IGeoPoint;
 import org.osmdroid.views.overlay.OverlayItem;
+
+import java.io.File;
+import java.io.InputStream;
 
 /**
  * Created by Georg on 25.05.2017.
@@ -42,5 +47,6 @@ public class MyOverlayItem extends OverlayItem {
     public int getPoints(){
         return this.points;
     }
+
 
 }
