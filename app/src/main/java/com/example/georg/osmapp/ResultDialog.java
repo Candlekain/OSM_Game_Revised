@@ -26,22 +26,23 @@ import java.util.concurrent.ExecutionException;
 public class ResultDialog extends DialogFragment {
 
     private int points;
-    private String itemName;
     private String[] correctAnswers;
+    private View resultLayout;
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         this.points = getArguments().getInt("points");
-        this.itemName = getArguments().getString("itemName");
         this.correctAnswers = getArguments().getStringArray("answers");
+        String itemName = getArguments().getString("itemName");
         //System.out.println("Array: "+correctAnswers[0]+correctAnswers[1]+correctAnswers[2]);
-
-
+        
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle("Punktestand für: "+itemName);
 
-        builder.setView(getRatingLayout());
-
+        //builder.setView(getRatingLayout());
+        resultLayout = View.inflate(getActivity(), R.layout.dialog_result, null);
+        builder.setView(resultLayout);
+        printResult();
 
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
@@ -57,31 +58,39 @@ public class ResultDialog extends DialogFragment {
         return builder.create();
     }
 
+    public void printResult(){
+        TextView answers = (TextView)resultLayout.findViewById(R.id.correct_answers);
+        answers.setText("Richtige Antworten:\n [1] "+correctAnswers[0]+"\n [2] "+ correctAnswers[1]+"\n [3] "+correctAnswers[2]);
+
+        RatingBar stars = (RatingBar)resultLayout.findViewById(R.id.result_ratingBar);
+        stars.setRating(points);
+
+    }
+
+    /*
     public LinearLayout getRatingLayout(){
 
-        LinearLayout upperLayout = new LinearLayout(getActivity());
-        upperLayout.setOrientation(LinearLayout.HORIZONTAL);
-        upperLayout.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT,1f));
+        //LinearLayout upperLayout = new LinearLayout(getActivity());
+        //upperLayout.setOrientation(LinearLayout.HORIZONTAL);
+        //upperLayout.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT,1f));
         //upperLayout.setGravity(Gravity.CENTER_HORIZONTAL);
         //upperLayout.setBaselineAligned(false);
 
-        ImageView image = new ImageView(getActivity());
-        image.setImageResource(getResources().getIdentifier(itemName.toLowerCase().replace(" ","").replace("-",""),"drawable",getActivity().getPackageName()));
-        image.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT,Gravity.CENTER_HORIZONTAL));
+        //ImageView image = new ImageView(getActivity());
+        //image.setImageResource(getResources().getIdentifier(itemName.toLowerCase().replace(" ","").replace("-",""),"drawable",getActivity().getPackageName()));
+        //image.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT,Gravity.CENTER_HORIZONTAL));
         //image.setScaleType(ImageView.ScaleType.FIT_CENTER);
-        image.setAdjustViewBounds(true);
+        //image.setAdjustViewBounds(true);
         //image.setMinimumHeight(200);
-        image.setMaxHeight(200);
+        //image.setMaxHeight(200);
 
-        upperLayout.addView(image);
+        //upperLayout.addView(image);
 
         TextView answers = new TextView(getActivity());
         answers.setText("Richtige Antworten:\n [1] "+correctAnswers[0]+"\n [2] "+ correctAnswers[1]+"\n [3] "+correctAnswers[2]);
         answers.setTextColor(Color.BLACK);
         answers.setTextSize(24);
         answers.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT,Gravity.CENTER_HORIZONTAL));
-
-        upperLayout.addView(answers);
 
         RatingBar stars = new RatingBar(getActivity());
         stars.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT,1f));
@@ -95,14 +104,14 @@ public class ResultDialog extends DialogFragment {
         layout.setGravity(Gravity.CENTER);
         layout.setBaselineAligned(false);
 
-        layout.addView(upperLayout);
+        layout.addView(answers);
         layout.addView(stars);
 
        // ScrollView container = new ScrollView(getActivity());
        // container.addView(layout);
 
         return layout;
-    }
+    }*/
 
     /*
     public LinearLayout getPointLayout(){

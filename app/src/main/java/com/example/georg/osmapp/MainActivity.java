@@ -266,7 +266,7 @@ public class MainActivity extends Activity implements LocationListener{
                 POI poi = poiIterator.next();
                 //roadList.add(poi.mLocation);
                 MyOverlayItem item = new MyOverlayItem(poi.mType, poi.mDescription, poi.mLocation);
-                item.setMarker(getIcon(poi.mDescription));
+                item.setMarker(getIcon(poi.mDescription,true));
                 items.add(item);
             }
             addItems(items);
@@ -348,17 +348,30 @@ public class MainActivity extends Activity implements LocationListener{
         return content;
     }
 
-    public Drawable getIcon(String type){
+    public Drawable getIcon(String type, Boolean activated){
         if(type != null){
             if(type.startsWith("place_of_worship")){
-                return ContextCompat.getDrawable(this, R.drawable.marker_church);
+                if(activated){
+                    return ContextCompat.getDrawable(this, R.drawable.marker_church);
+                } else {
+                    return ContextCompat.getDrawable(this, R.drawable.marker_church_deactivated);
+                }
             } else if (type.startsWith("memorial")){
-                return ContextCompat.getDrawable(this, R.drawable.marker_memorial);
+                if(activated){
+                    return ContextCompat.getDrawable(this, R.drawable.marker_memorial);
+                } else {
+                    return ContextCompat.getDrawable(this, R.drawable.marker_memorial_deactivated);
+                }
             } else {
-                return ContextCompat.getDrawable(this, R.drawable.marker_default);
+                if(activated){
+                    return ContextCompat.getDrawable(this, R.drawable.marker_default);
+                } else {
+                    return ContextCompat.getDrawable(this, R.drawable.marker_deactivated);
+                }
             }
         }
-        return ContextCompat.getDrawable(this, R.drawable.marker_default);
+        return null;
+        //return ContextCompat.getDrawable(this, R.drawable.marker_default);
         //getDrawable(R.drawable.marker_default);
         //getResources().getDrawable(R.drawable.marker_default);
     }
@@ -396,7 +409,7 @@ public class MainActivity extends Activity implements LocationListener{
         }
         if(!currentItem.isGame_1_activated() && !currentItem.isGame_2_activated()){
             // deactivate game for current item
-            currentItem.setMarker(ContextCompat.getDrawable(this, R.drawable.marker_deactivated));
+            currentItem.setMarker(getIcon(currentItem.getSnippet(),false));
             entries.add(new Entry(currentImage,currentText));
         }
     }
@@ -430,15 +443,15 @@ public class MainActivity extends Activity implements LocationListener{
     public void setupEvaluation(){
         // Add Items for Evaluation study
         MyOverlayItem sonnenzeichen = new MyOverlayItem("Sonnenzeichen", "memorial", new GeoPoint(49.78237,9.96784));
-        sonnenzeichen.setMarker(getIcon("memorial"));
+        sonnenzeichen.setMarker(getIcon(sonnenzeichen.getSnippet(),true));
         MyOverlayItem roterPlatz = new MyOverlayItem("Roter Platz", "memorial", new GeoPoint(49.78215,9.96807));
-        roterPlatz.setMarker(getIcon("memorial"));
+        roterPlatz.setMarker(getIcon(roterPlatz.getSnippet(),true));
         MyOverlayItem minimalflaeche = new MyOverlayItem("Ennepersche Minimalflaeche", "memorial", new GeoPoint(49.78454,9.97312));
-        minimalflaeche.setMarker(getIcon("memorial"));
+        minimalflaeche.setMarker(getIcon(minimalflaeche.getSnippet(),true));
         MyOverlayItem museum = new MyOverlayItem("Mineralogisches Museum", "museum", new GeoPoint(49.78235,9.97019));
-        museum.setMarker(getIcon("museum"));
+        museum.setMarker(getIcon(museum.getSnippet(),true));
         MyOverlayItem kopf = new MyOverlayItem("Denker-Kopf", "sculpture", new GeoPoint(49.78331,9.97058));
-        kopf.setMarker(getIcon("sculpture"));
+        kopf.setMarker(getIcon(kopf.getSnippet(),true));
 
         // Add order numbers for study
         List<Integer> orderList = Arrays.asList(1,2,3,4,5);
