@@ -293,7 +293,7 @@ public class MainActivity extends Activity implements LocationListener{
                     public boolean onItemSingleTapUp(final int index, final MyOverlayItem item) {
                         String tempText = getTextForItem(item.getTitle());
                         //if(item.equals(currentItem)){
-                        if(item.getDrawable().getConstantState().equals(ContextCompat.getDrawable(getApplicationContext(), R.drawable.marker_deactivated).getConstantState())){
+                        if(!item.isGame_1_activated() && !item.isGame_2_activated()){
                             return true;
                         } else if (!tempText.isEmpty()){
                             currentItem = item;
@@ -308,9 +308,7 @@ public class MainActivity extends Activity implements LocationListener{
                             dialog.setArguments(bundle);
                             dialog.show(getFragmentManager(),"Display Dialog");
                             return true;
-                        }
-
-                        else {
+                        } else {
                             AlertDialog.Builder alertBuilder = new AlertDialog.Builder(MainActivity.this);
                             alertBuilder.setMessage("Zu diesem Objekt fehlen leider momentan die nötigen Daten. Schau einfach später nochmal vorbei.");
                             AlertDialog dialog = alertBuilder.create();
