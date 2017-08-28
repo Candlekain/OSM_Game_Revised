@@ -229,10 +229,10 @@ public class MainActivity extends Activity implements LocationListener{
         try{
             locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
             if(locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)){
-                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,10000, 0, this);
+                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,1000, 0, this);
             }
             if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
-                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,10000, 0, this);
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,1000, 0, this);
             }
         } catch (SecurityException ex){
             System.err.println(ex);

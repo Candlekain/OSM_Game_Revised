@@ -31,7 +31,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@drawable/fill_blanks"
-                android:alpha="0.1"/>
+                android:alpha="0.2"/>
 
             <TextView
                 android:layout_width="match_parent"
@@ -83,7 +83,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@drawable/image_pick"
-                android:alpha="0.1"/>
+                android:alpha="0.2"/>
 
             <TextView
                 android:layout_width="match_parent"
